@@ -30,20 +30,37 @@ OctoFit Tracker is a three-tier application for a school fitness program. The st
 
 Record your plan here before editing code.
 
-- Presentation tier decision:
-- Logic tier decision:
-- Data tier decision:
-- Activity tracking approach:
-- Team management approach:
-- Leaderboard approach:
-- Workout suggestions approach:
+- Presentation tier decision: change last,  implement the fetch/useState-driven UI behavior in App.tsx and the feature components
+- Logic tier decision: change second, Implement the service methods in octofitService.ts:
+activity creation with existence checks and 4xx validation on bad IDs
+team creation with required name validation
+leaderboard total points ordered by team
+workout suggestions based on user goal/activity pattern and unknown-user handling
+- Data tier decision:change first, Fix the required field validation in the four Mongoose models
+Confirm the seeded demo data remains idempotent and preserves existing data in seed.ts
+- Activity tracking approach: Validate user/team IDs and existence, then save activity with computed points and timestamp.
+- Team management approach: Require a team name, preserve its mascot and members, and return a clear 400 for invalid input.
+- Leaderboard approach: Sum activity points per team, sort highest first, and assign 1-based ranks.
+- Workout suggestions approach: Match suggestions to the user’s goal or recent activity, explain the match, and return a 4xx for unknown users.
 
 ## Test plan
 
 Record the commands you run and what each failure means.
 
 - Data-tier command: `npm run test:data --prefix octofit-tracker/backend`
+Result: 4 failed, 1 passed
+Failures are in data.contract.test.ts
+The failing assertions are all the same pattern: “expected undefined to be defined” for required fields on User, Team, Activity, and Workout
+This tells us the schemas are still too permissive and do not enforce the required fields the API/data contract expects
 - API command: `npm run test:api --prefix octofit-tracker/backend`
+octofitService.ts explicitly throws 501 for createActivity and createTeam
+getLeaderboard returns an empty array
+suggestWorkouts returns only one random workout
 - Frontend command: `npm test --prefix octofit-tracker/frontend`
+Result: the suite is failing broadly across the presentation checks in app.contract.test.tsx
+The DOM shows “Implementation pending” rather than real data, loading states, empty states, or alerts
+A route-level failure pattern is clear: the app is not yet rendering the actual sections or handling error/loading states required by the contrac
 - Backend build command: `npm run build --prefix octofit-tracker/backend`
+Both builds succeeded: the backend TypeScript check and the frontend TypeScript and Vite production build each exited with code 0.
 - Frontend build command: `npm run build --prefix octofit-tracker/frontend`
+Both builds succeeded: the backend TypeScript check and the frontend TypeScript and Vite production build each exited with code 0.
